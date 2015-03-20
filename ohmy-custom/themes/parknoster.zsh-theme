@@ -71,9 +71,9 @@ prompt_context() {
     name=$(box_name)
 
     if [[ $name == '$'* ]]; then 
-      prompt_segment 88 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{208}%m"
+      prompt_segment 88 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{208}$name"
     else
-      prompt_segment 25 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{yellow}%m"
+      prompt_segment 25 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{yellow}$name"
     fi
   fi
 }
