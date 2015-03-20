@@ -19,6 +19,12 @@ Remember to change font in iTerm.
     
     Regular Font & Non-ASCII font
 
+## Custom hostname and identify production servers
+
+Theme loads custom boxname from `~/.box-name` or `/etc/box-name` file.
+
+Also if name starts with dollar `$` symbol it will change color to alternative. This is for identify production servers.
+
 ## Commit
 
     $ dfm add .
