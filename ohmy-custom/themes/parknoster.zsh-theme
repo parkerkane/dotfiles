@@ -35,7 +35,7 @@ prompt_segment() {
   local bg fg
   [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
   [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
-  if [[ $CURRENT_BG != 'NONE' && $CURRENT_BG != 'black' && $1 != $CURRENT_BG ]]; then
+  if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
     echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
   else
     echo -n "%{$bg%}%{$fg%} "
@@ -61,7 +61,11 @@ prompt_end() {
 # Context: user@hostname (who am I and where am I)
 prompt_context() {
   if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-    prompt_segment black default "%(!.%{%F{red}%}.%F{cyan})$USER@%m"
+    if [[ $UID -eq 0 ]]; then 
+      prompt_segment 88 white "$USER @ %F{yellow}%m"
+    else
+      prompt_segment 25 white "$USER @ %F{yellow}%m"
+    fi
   fi
 }
 
