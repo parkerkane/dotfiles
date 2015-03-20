@@ -39,6 +39,7 @@ prompt_segment() {
   if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
     echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
   else
+    [[ $1 != 'black' ]] && SEGMENT_SPACE=' '
     echo -n "%{$bg%}%{$fg%}$SEGMENT_SPACE"
   fi
   CURRENT_BG=$1
