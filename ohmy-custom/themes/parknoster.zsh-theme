@@ -70,10 +70,10 @@ prompt_context() {
   if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
     name=$(box_name)
 
-    if [[ $UID -eq 0 || $name == '$'* ]]; then 
-      prompt_segment 88 white "$USER @ %F{yellow}$name"
+    if [[ $name == '$'* ]]; then 
+      prompt_segment 88 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{208}%m"
     else
-      prompt_segment 25 white "$USER @ %F{yellow}$name"
+      prompt_segment 25 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{yellow}%m"
     fi
   fi
 }
