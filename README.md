@@ -7,6 +7,18 @@
     $ git clone https://github.com/parkerkane/dotfiles.git .dotfiles
     $ ./.dotfiles/bin/dfm install # creates symlinks to install files
 
+## Install powerline fonts
+
+    $ git clone https://github.com/powerline/fonts.git
+    $ cd fonts
+    $ ./install.sh
+    
+Remember to change font in iTerm.
+
+    Preferences > Profiles > Default (or other profile) > Text
+    
+    Regular Font & Non-ASCII font
+
 ## Commit
 
     $ dfm add .
