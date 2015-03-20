@@ -59,16 +59,18 @@ prompt_end() {
 # Each component will draw itself, and hide itself if no information needs to be shown
 
 function box_name {
-    [ -f ~/.box-name ] && cat ~/.box-name || echo -n "%m"
+    ( [ -f /etc/box-name ] && cat /etc/box-name ) || ( [ -f ~/.box-name ] && cat ~/.box-name ) || echo -n "%m"
 }
 
 # Context: user@hostname (who am I and where am I)
 prompt_context() {
   if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-    if [[ $UID -eq 0 ]]; then 
-      prompt_segment 88 white "$USER @ %F{yellow}$(box_name)"
+    name=$(box_name)
+
+    if [[ $UID -eq 0 || $name == '$'* ]]; then 
+      prompt_segment 88 white "$USER @ %F{yellow}$name"
     else
-      prompt_segment 25 white "$USER @ %F{yellow}$(box_name)"
+      prompt_segment 25 white "$USER @ %F{yellow}$name"
     fi
   fi
 }
