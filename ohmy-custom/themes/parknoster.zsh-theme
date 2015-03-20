@@ -27,6 +27,7 @@
 
 CURRENT_BG='NONE'
 SEGMENT_SEPARATOR=''
+SEGMENT_SPACE=''
 
 # Begin a segment
 # Takes two arguments, background and foreground. Both can be omitted,
@@ -36,11 +37,12 @@ prompt_segment() {
   [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
   [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
   if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
-    echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
+    echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%}$SEGMENT_SPACE"
   else
-    echo -n "%{$bg%}%{$fg%} "
+    echo -n "%{$bg%}%{$fg%}$SEGMENT_SPACE"
   fi
   CURRENT_BG=$1
+  SEGMENT_SPACE=' '
   [[ -n $3 ]] && echo -n $3
 }
 
