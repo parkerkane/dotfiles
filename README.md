@@ -5,6 +5,7 @@
 ## Install this repo
 
     $ git clone https://github.com/parkerkane/dotfiles.git .dotfiles
+    $ ./.dotfiles/ohmy-install.sh
     $ ./.dotfiles/bin/dfm install # creates symlinks to install files
 
 ## Install powerline fonts
