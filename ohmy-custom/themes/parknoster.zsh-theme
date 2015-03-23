@@ -157,9 +157,17 @@ prompt_dir() {
 
 # Virtualenv: current working virtualenv
 prompt_virtualenv() {
-  local virtualenv_path="$VIRTUAL_ENV"
+  local virtualenv_path="${VIRTUAL_ENV/#$HOME/~}"
   if [[ -n $virtualenv_path && -n $VIRTUAL_ENV_DISABLE_PROMPT ]]; then
-    prompt_segment blue black "(`basename $virtualenv_path`)"
+    prompt_segment blue black "$(basename $(dirname $virtualenv_path))/$(basename $virtualenv_path)"
+  fi
+}
+
+# Golang
+prompt_go() {
+  local golang_path="${GOPATH/#$HOME/~}"
+  if [[ -n $golang_path ]]; then
+    prompt_segment yellow black "$(basename $(dirname $golang_path))/$(basename $golang_path)"
   fi
 }
 
@@ -182,6 +190,7 @@ build_prompt() {
   RETVAL=$?
   prompt_status
   prompt_virtualenv
+  prompt_go
   prompt_context
   prompt_dir
   prompt_git
