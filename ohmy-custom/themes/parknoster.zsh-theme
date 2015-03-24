@@ -192,6 +192,8 @@ goenv() {
   export GOPATH=`pwd`/_vendor:`pwd`
   export PATH=${GOPATH//://bin:}/bin:$PATH
 
+  echo "'deactivate' to disable goenv"
+
   deactivate() {
     export GOPATH=$GOPATH_OLD
     export PATH=$PATH_OLD
