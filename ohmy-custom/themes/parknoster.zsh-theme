@@ -32,7 +32,7 @@ SEGMENT_SPACE=''
 # Begin a segment
 # Takes two arguments, background and foreground. Both can be omitted,
 # rendering default background/foreground.
-prompt_segment() {
++prompt_segment() {
   local bg fg
   [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
   [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
@@ -48,7 +48,7 @@ prompt_segment() {
 }
 
 # End the prompt, closing any open segments
-prompt_end() {
++prompt_end() {
   if [[ -n $CURRENT_BG && $CURRENT_BG != 'black' ]]; then
     echo -n " %{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR"
   else
@@ -61,25 +61,25 @@ prompt_end() {
 ### Prompt components
 # Each component will draw itself, and hide itself if no information needs to be shown
 
-function box_name {
++box_name() {
     ( [ -f /etc/box-name ] && cat /etc/box-name ) || ( [ -f ~/.box-name ] && cat ~/.box-name ) || echo -n "%m"
 }
 
 # Context: user@hostname (who am I and where am I)
-prompt_context() {
++prompt_context() {
   if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-    name=$(box_name)
+    name=$(+box_name)
 
     if [[ $name == '$'* ]]; then 
-      prompt_segment 88 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{208}$name"
+      +prompt_segment 88 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{208}$name"
     else
-      prompt_segment 25 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{yellow}$name"
+      +prompt_segment 25 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{yellow}$name"
     fi
   fi
 }
 
 # Git: branch/detached head, dirty status
-prompt_git() {
++prompt_git() {
   local ref dirty mode repo_path
   repo_path=$(git rev-parse --git-dir 2>/dev/null)
 
@@ -87,9 +87,9 @@ prompt_git() {
     dirty=$(parse_git_dirty)
     ref=$(git symbolic-ref HEAD 2> /dev/null) || ref="➦ $(git show-ref --head -s --abbrev |head -n1 2> /dev/null)"
     if [[ -n $dirty ]]; then
-      prompt_segment yellow black
+      +prompt_segment yellow black
     else
-      prompt_segment green black
+      +prompt_segment green black
     fi
 
     if [[ -e "${repo_path}/BISECT_LOG" ]]; then
@@ -115,21 +115,21 @@ prompt_git() {
   fi
 }
 
-prompt_hg() {
++prompt_hg() {
   local rev status
   if $(hg id >/dev/null 2>&1); then
     if $(hg prompt >/dev/null 2>&1); then
       if [[ $(hg prompt "{status|unknown}") = "?" ]]; then
         # if files are not added
-        prompt_segment red white
+        +prompt_segment red white
         st='±'
       elif [[ -n $(hg prompt "{status|modified}") ]]; then
         # if any modification
-        prompt_segment yellow black
+        +prompt_segment yellow black
         st='±'
       else
         # if working copy is clean
-        prompt_segment green black
+        +prompt_segment green black
       fi
       echo -n $(hg prompt "☿ {rev}@{branch}") $st
     else
@@ -137,13 +137,13 @@ prompt_hg() {
       rev=$(hg id -n 2>/dev/null | sed 's/[^-0-9]//g')
       branch=$(hg id -b 2>/dev/null)
       if `hg st | grep -q "^\?"`; then
-        prompt_segment red black
+        +prompt_segment red black
         st='±'
       elif `hg st | grep -q "^(M|A)"`; then
-        prompt_segment yellow black
+        +prompt_segment yellow black
         st='±'
       else
-        prompt_segment green black
+        +prompt_segment green black
       fi
       echo -n "☿ $rev@$branch" $st
     fi
@@ -151,23 +151,23 @@ prompt_hg() {
 }
 
 # Dir: current working directory
-prompt_dir() {
-  prompt_segment black cyan '%~'
++prompt_dir() {
+  +prompt_segment black cyan '%~'
 }
 
 # Virtualenv: current working virtualenv
-prompt_virtualenv() {
++prompt_virtualenv() {
   local virtualenv_path="${VIRTUAL_ENV/#$HOME/~}"
   if [[ -n $virtualenv_path && -n $VIRTUAL_ENV_DISABLE_PROMPT ]]; then
-    prompt_segment blue black "$(basename $(dirname $virtualenv_path))/$(basename $virtualenv_path)"
+    +prompt_segment blue black "py $(basename $(dirname $virtualenv_path))/$(basename $virtualenv_path)"
   fi
 }
 
 # Golang
-prompt_go() {
-  local golang_path="${GOPATH/#$HOME/~}"
++prompt_go() {
+  local golang_path="${GOPATH_PROMPT/#$HOME/~}"
   if [[ -n $golang_path ]]; then
-    prompt_segment yellow black "$(basename $(dirname $golang_path))/$(basename $golang_path)"
+    +prompt_segment yellow black "go $(basename $(dirname $golang_path))/$(basename $golang_path)"
   fi
 }
 
@@ -175,27 +175,48 @@ prompt_go() {
 # - was there an error
 # - am I root
 # - are there background jobs?
-prompt_status() {
++prompt_status() {
   local symbols
   symbols=()
   [[ $RETVAL -ne 0 ]] && symbols+="%{%F{red}%}✘"
   [[ $UID -eq 0 ]] && symbols+="%{%F{yellow}%}⚡"
   [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{cyan}%}⚙"
 
-  [[ -n "$symbols" ]] && prompt_segment black default "$symbols"
+  [[ -n "$symbols" ]] && +prompt_segment black default "$symbols"
+}
+
+goenv() {
+  GOPATH_PROMPT=`pwd`
+  GOPATH_OLD=$GOPATH
+  PATH_OLD=$PATH
+  export GOPATH=`pwd`/_vendor:`pwd`
+  export PATH=${GOPATH//://bin:}/bin:$PATH
+
+  deactivate() {
+    export GOPATH=$GOPATH_OLD
+    export PATH=$PATH_OLD
+
+    unset GOPATH_PROMPT
+    unset GOPATH_OLD
+    unset PATH_OLD
+
+    deactivate() {}
+    unset -f deactivate
+  }
 }
 
 ## Main prompt
 build_prompt() {
   RETVAL=$?
-  prompt_status
-  prompt_virtualenv
-  prompt_go
-  prompt_context
-  prompt_dir
-  prompt_git
-  prompt_hg
-  prompt_end
+  +prompt_status
+  +prompt_virtualenv
+  +prompt_go
+  +prompt_context
+  +prompt_dir
+  +prompt_git
+  +prompt_hg
+  +prompt_end
+  unset RETVAL
 }
 
 PROMPT='%{%f%b%k%}$(build_prompt) '
