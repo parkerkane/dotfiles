@@ -49,8 +49,8 @@ SEGMENT_SPACE=''
 
 # End the prompt, closing any open segments
 +prompt_end() {
-  if [[ -n $CURRENT_BG && $CURRENT_BG != 'black' ]]; then
-    echo -n " %{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR"
+  if [[ -n $CURRENT_BG && $CURRENT_BG != 'NONE' && $CURRENT_BG != 'black' ]]; then
+    echo -n " %{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR$SEGMENT_SPACE"
   else
     echo -n "%{%k%}"
   fi
@@ -210,15 +210,21 @@ goenv() {
 ## Main prompt
 build_prompt() {
   RETVAL=$?
-  +prompt_status
-  +prompt_virtualenv
-  +prompt_go
   +prompt_context
   +prompt_dir
+  +prompt_virtualenv
+  +prompt_go
+  +prompt_end
+
+  echo
+  CURRENT_BG='NONE'
+  SEGMENT_SPACE=''
+  
+  +prompt_status
   +prompt_git
   +prompt_hg
   +prompt_end
   unset RETVAL
 }
 
-PROMPT='%{%f%b%k%}$(build_prompt) '
+PROMPT='%{%f%b%k%}$(build_prompt)$ '
