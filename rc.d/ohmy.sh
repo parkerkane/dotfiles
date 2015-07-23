@@ -46,7 +46,8 @@ ZSH_CUSTOM=$HOME/.dotfiles/ohmy-custom
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git python golang zsh-syntax-highlighting history-substring-search z docker sudo rsync)
+# plugins=(git python golang zsh-syntax-highlighting history-substring-search z docker sudo rsync)
+plugins=(git history-substring-search z zsh-syntax-highlighting)
 
 if [[ $(uname) == 'Darwin' ]]; then
 	plugins+="osx"

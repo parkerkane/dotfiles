@@ -210,21 +210,23 @@ prompt_pure_async_tasks() {
 	fi
 
 	# only perform tasks inside git working tree
-	[[ "${working_tree}" != "" ]] || return
+	if [[ "${working_tree}" != "" ]]; then
 
-	if (( ${PURE_GIT_PULL:-1} )); then
-		# make sure working tree is not $HOME
-		[[ "${working_tree}" != "$HOME" ]] &&
-		# tell worker to do a git fetch
-		async_job "prompt_pure" prompt_pure_async_git_fetch "$working_tree"
-	fi
+		if (( ${PURE_GIT_PULL:-1} )); then
+			# make sure working tree is not $HOME
+			[[ "${working_tree}" != "$HOME" ]] &&
+			# tell worker to do a git fetch
+			async_job "prompt_pure" prompt_pure_async_git_fetch "$working_tree"
+		fi
 
-	# if dirty checking is sufficiently fast, tell worker to check it again, or wait for timeout
-	local time_since_last_dirty_check=$(( $EPOCHSECONDS - ${prompt_pure_git_last_dirty_check_timestamp:-0} ))
-	if (( $time_since_last_dirty_check > ${PURE_GIT_DELAY_DIRTY_CHECK:-1800} )); then
-		unset prompt_pure_git_last_dirty_check_timestamp
-		# check check if there is anything to pull
-		async_job "prompt_pure" prompt_pure_async_git_dirty "${PURE_GIT_UNTRACKED_DIRTY:-1}" "$working_tree"
+		# if dirty checking is sufficiently fast, tell worker to check it again, or wait for timeout
+		local time_since_last_dirty_check=$(( $EPOCHSECONDS - ${prompt_pure_git_last_dirty_check_timestamp:-0} ))
+		if (( $time_since_last_dirty_check > ${PURE_GIT_DELAY_DIRTY_CHECK:-1800} )); then
+			unset prompt_pure_git_last_dirty_check_timestamp
+			# check check if there is anything to pull
+			async_job "prompt_pure" prompt_pure_async_git_dirty "${PURE_GIT_UNTRACKED_DIRTY:-1}" "$working_tree"
+		fi
+		
 	fi
 }
 
