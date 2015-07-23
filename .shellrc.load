@@ -2,8 +2,6 @@ for f ($HOME/.dotfiles/rc.d/*) {
 	source $f
 }
 
-# source .dotfiles/rc.d/ohmy.sh
-
 goenv() {
   GOPATH_PROMPT=`pwd`
   GOPATH_OLD=$GOPATH

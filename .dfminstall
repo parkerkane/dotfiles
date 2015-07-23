@@ -5,3 +5,7 @@ ohmy-custom skip
 ohmy-install.sh skip
 
 rc.d skip
+
+pure skip
+
+zfunctions skip
