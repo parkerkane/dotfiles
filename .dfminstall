@@ -5,3 +5,5 @@ ohmy-custom skip
 ohmy-install.sh skip
 
 rc.d skip
+
+dfm skip

@@ -34,6 +34,8 @@ SEGMENT_SPACE=''
 
 psvar[10]=1
 
+setopt TRANSIENT_RPROMPT
+
 # Begin a segment
 # Takes two arguments, background and foreground. Both can be omitted,
 # rendering default background/foreground.
@@ -50,7 +52,7 @@ psvar[10]=1
     [[ $1 != 'black' ]] && SEGMENT_SPACE=' '
     echo -n "%{%(10V.$bg$fg.)%}$SEGMENT_SPACE"
   fi
-  export CURRENT_BG=$1
+  CURRENT_BG=$1
   SEGMENT_SPACE=' '
   [[ -n $3 ]] && echo -n $3
 }
@@ -60,7 +62,7 @@ psvar[10]=1
   if [[ -n $CURRENT_BG && $CURRENT_BG != 'NONE' && $CURRENT_BG != 'black' ]]; then
     echo -n " %{%(10V.%k%F{$CURRENT_BG}.)%}%(10V.$SEGMENT_SEPARATOR.>)$SEGMENT_SPACE"
   else
-    echo -n "%{%(10V.%k.)%}$SEGMENT_SPACE"
+    echo -n "%{%(10V.%k.)%}"
   fi
   echo -n "%{%(10V.%f.)%}"
   CURRENT_BG=''
@@ -223,20 +225,18 @@ fi
 
   psvar[1]="$pwd"
 
-  local PS0="$(+prompt_first)"
+  PS1="$(+prompt_second)$ "
+  RPS1="$(+prompt_first)"
 
   psvar[10]=()
-  local ln=${#${(%):-$PS0}}
+  local ln=${#${(%):-$RPS1}}
   psvar[10]=1
 
-  local trimsize=$(($ln - ${COLUMNS} + 5))
+  local trimsize=$(($ln - (${COLUMNS}/2) + 5))
 
   if [[ $trimsize -gt 4 ]]; then
     psvar[1]="...$pwd[$trimsize,$ln]"
   fi
-
-  print -rP "$PS0%E"
-  PS1="$(+prompt_second)"
 }
 
 +prompt_preexec() {
