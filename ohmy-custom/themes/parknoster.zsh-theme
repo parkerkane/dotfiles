@@ -28,7 +28,7 @@
 # emulate -L zsh
 # setopt typeset_silent
 
-export CURRENT_BG='NONE'
+CURRENT_BG='NONE'
 SEGMENT_SEPARATOR=''
 SEGMENT_SPACE=''
 

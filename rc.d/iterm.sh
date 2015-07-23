@@ -1,4 +1,6 @@
 if [[ -o login ]]; then
+
+
   if [ x"$TERM" != "xscreen" ]; then
     # Indicates start of command output. Runs just before command executes.
     iterm2_before_cmd_executes() {
@@ -15,6 +17,11 @@ if [[ -o login ]]; then
     # Accessible in iTerm2 (in a badge now, elsewhere in the future) as
     # \(user.currentDirectory).
     iterm2_print_user_vars() {
+      if [[ $UID == 0 || $EUID == 0 ]]; then
+        printf "\033]50;SetProfile=Root\a"
+      else
+        printf "\033]50;SetProfile=Default\a"
+      fi
     }
 
     iterm2_print_state_data() {
