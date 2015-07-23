@@ -25,9 +25,14 @@
 ### Segment drawing
 # A few utility functions to make it easy and re-usable to draw segmented prompts
 
-CURRENT_BG='NONE'
+# emulate -L zsh
+# setopt typeset_silent
+
+export CURRENT_BG='NONE'
 SEGMENT_SEPARATOR=''
 SEGMENT_SPACE=''
+
+psvar[10]=1
 
 # Begin a segment
 # Takes two arguments, background and foreground. Both can be omitted,
@@ -36,13 +41,16 @@ SEGMENT_SPACE=''
   local bg fg
   [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
   [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
-  if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
-    echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
+
+  if [[ $CURRENT_BG == 'NONE' && $1 != 'black' ]]; then
+    echo -n "%{%(10V.$bg%F{black}.)%}%(10V.$SEGMENT_SEPARATOR.)%{%(10V.$fg.)%} "
+  elif [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
+    echo -n " %{%(10V.$bg%F{$CURRENT_BG}.)%}%(10V.$SEGMENT_SEPARATOR.>)%{%(10V.$fg.)%} "
   else
     [[ $1 != 'black' ]] && SEGMENT_SPACE=' '
-    echo -n "%{$bg%}%{$fg%}$SEGMENT_SPACE"
+    echo -n "%{%(10V.$bg$fg.)%}$SEGMENT_SPACE"
   fi
-  CURRENT_BG=$1
+  export CURRENT_BG=$1
   SEGMENT_SPACE=' '
   [[ -n $3 ]] && echo -n $3
 }
@@ -50,11 +58,11 @@ SEGMENT_SPACE=''
 # End the prompt, closing any open segments
 +prompt_end() {
   if [[ -n $CURRENT_BG && $CURRENT_BG != 'NONE' && $CURRENT_BG != 'black' ]]; then
-    echo -n " %{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR$SEGMENT_SPACE"
+    echo -n " %{%(10V.%k%F{$CURRENT_BG}.)%}%(10V.$SEGMENT_SEPARATOR.>)$SEGMENT_SPACE"
   else
-    echo -n "%{%k%}"
+    echo -n "%{%(10V.%k.)%}$SEGMENT_SPACE"
   fi
-  echo -n "%{%f%}"
+  echo -n "%{%(10V.%f.)%}"
   CURRENT_BG=''
 }
 
@@ -68,12 +76,12 @@ SEGMENT_SPACE=''
 # Context: user@hostname (who am I and where am I)
 +prompt_context() {
   if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-    name=$(+box_name)
+    local name=$(+box_name)
 
     if [[ $name == '$'* ]]; then 
-      +prompt_segment 88 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{208}$name"
+      +prompt_segment 88 white "%(10V:%(!.%{%F{208}%}.):)$USER%(10V.%F{white}.) @ %(10V.%F{208}.)$name"
     else
-      +prompt_segment 25 white "%(!.%{%F{208}%}.)$USER%F{white} @ %F{yellow}$name"
+      +prompt_segment 25 white "%(10V:%(!.%{%F{208}%}.):)$USER%(10V.%F{white}.) @ %(10V.%F{yellow}.)$name"
     fi
   fi
 }
@@ -100,7 +108,7 @@ SEGMENT_SPACE=''
       mode=" >R>"
     fi
 
-    setopt promptsubst
+    # setopt prompt_subst
     autoload -Uz vcs_info
 
     zstyle ':vcs_info:*' enable git
@@ -152,7 +160,8 @@ SEGMENT_SPACE=''
 
 # Dir: current working directory
 +prompt_dir() {
-  +prompt_segment black cyan '%~'
+  +prompt_segment black cyan "%1v"
+  # +prompt_segment black cyan "%~"
 }
 
 # Virtualenv: current working virtualenv
@@ -178,53 +187,59 @@ SEGMENT_SPACE=''
 +prompt_status() {
   local symbols
   symbols=()
-  [[ $RETVAL -ne 0 ]] && symbols+="%{%F{red}%}✘"
-  [[ $UID -eq 0 ]] && symbols+="%{%F{yellow}%}⚡"
-  [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{cyan}%}⚙"
+  [[ $RETVAL -ne 0 ]] && symbols+="%{%(10V.%F{red}.)%}✘"
+  [[ $UID -eq 0 ]] && symbols+="%{%(10V.%F{yellow}.)%}⚡"
+  [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%(10V.%F{cyan}.)%}⚙"
 
   [[ -n "$symbols" ]] && +prompt_segment black default "$symbols"
 }
 
-goenv() {
-  GOPATH_PROMPT=`pwd`
-  GOPATH_OLD=$GOPATH
-  PATH_OLD=$PATH
-  export GOPATH=`pwd`/_vendor:`pwd`
-  export PATH=${GOPATH//://bin:}/bin:$PATH
-
-  echo "'deactivate' to disable goenv"
-
-  deactivate() {
-    export GOPATH=$GOPATH_OLD
-    export PATH=$PATH_OLD
-
-    unset GOPATH_PROMPT
-    unset GOPATH_OLD
-    unset PATH_OLD
-
-    deactivate() {}
-    unset -f deactivate
-  }
-}
-
-## Main prompt
-build_prompt() {
-  RETVAL=$?
++prompt_first() {
   +prompt_context
   +prompt_dir
   +prompt_virtualenv
   +prompt_go
   +prompt_end
+}
 
-  echo
-  CURRENT_BG='NONE'
-  SEGMENT_SPACE=''
-  
++prompt_second() {
+  iterm2_prompt_start
   +prompt_status
   +prompt_git
   +prompt_hg
   +prompt_end
-  unset RETVAL
+  iterm2_prompt_end
 }
 
-PROMPT='%{%f%b%k%}$(build_prompt)$ '
++prompt_precmd() {
+  local RETVAL=$?
+
+  local pwd="${PWD/#$HOME/~}"
+
+  psvar[1]="$pwd"
+
+  local PS0="$(+prompt_first)"
+
+  psvar[10]=()
+  local ln=${#${(%):-$PS0}}
+  psvar[10]=1
+
+  local trimsize=$(($ln - ${COLUMNS} + 5))
+
+  if [[ $trimsize -gt 4 ]]; then
+    psvar[1]="...$pwd[$trimsize,$ln]"
+  fi
+
+  print -rP "$PS0%E"
+  PS1="$(+prompt_second)"
+}
+
++prompt_preexec() {
+
+}
+
+[[ -z $precmd_functions ]] && precmd_functions=()
+precmd_functions=($precmd_functions +prompt_precmd)
+
+[[ -z $preexec_functions ]] && preexec_functions=()
+preexec_functions=($preexec_functions iterm2_preexec)
