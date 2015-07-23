@@ -194,6 +194,11 @@ psvar[10]=1
   [[ -n "$symbols" ]] && +prompt_segment black default "$symbols"
 }
 
+if [[ $(whence -w iterm2_prompt_start | awk '{ print $2 }') != "function" ]]; then
+  iterm2_prompt_start() {}
+  iterm2_prompt_end() {}
+fi
+
 +prompt_first() {
   +prompt_context
   +prompt_dir
